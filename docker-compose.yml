@@ -1,0 +1,116 @@
+services:
+  # Frontend - Next.js Application
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=development
+      - NEXT_PUBLIC_API_URL=http://localhost:8000
+      - NEXT_PUBLIC_SUPABASE_URL=${SUPABASE_URL}
+      - NEXT_PUBLIC_SUPABASE_ANON_KEY=${SUPABASE_ANON_KEY}
+      - NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=${STRIPE_PUBLISHABLE_KEY}
+      - NEXT_PUBLIC_STRIPE_PRICE_ID_MONTHLY=${STRIPE_PRICE_ID_MONTHLY}
+      - NEXT_PUBLIC_STRIPE_PRICE_ID_YEARLY=${STRIPE_PRICE_ID_YEARLY}
+      - NEXT_PUBLIC_MIXPANEL_TOKEN=${MIXPANEL_TOKEN}
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    depends_on:
+      - backend
+    networks:
+      - gymformai-network
+
+  # Backend - FastAPI Application
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    environment:
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - SUPABASE_URL=${SUPABASE_URL}
+      - SUPABASE_ANON_KEY=${SUPABASE_ANON_KEY}
+      - SUPABASE_SERVICE_ROLE_KEY=${SUPABASE_SERVICE_ROLE_KEY}
+      - STRIPE_SECRET_KEY=${STRIPE_SECRET_KEY}
+      - STRIPE_WEBHOOK_SECRET=${STRIPE_WEBHOOK_SECRET}
+      - STRIPE_PRICE_ID_MONTHLY=${STRIPE_PRICE_ID_MONTHLY}
+      - STRIPE_PRICE_ID_YEARLY=${STRIPE_PRICE_ID_YEARLY}
+      - MIXPANEL_TOKEN=${MIXPANEL_TOKEN}
+      - FRONTEND_URL=${FRONTEND_URL}
+      - SECRET_KEY=${SECRET_KEY}
+      - ALGORITHM=${ALGORITHM}
+      - ACCESS_TOKEN_EXPIRE_MINUTES=${ACCESS_TOKEN_EXPIRE_MINUTES}
+      - RATE_LIMIT_PER_MINUTE=${RATE_LIMIT_PER_MINUTE}
+      - MAX_FILE_SIZE=${MAX_FILE_SIZE}
+      - ALLOWED_VIDEO_TYPES=${ALLOWED_VIDEO_TYPES}
+      - OPENAI_MODEL=${OPENAI_MODEL}
+      - MAX_TOKENS=${MAX_TOKENS}
+      - TEMPERATURE=${TEMPERATURE}
+      - POSE_CONFIDENCE_THRESHOLD=${POSE_CONFIDENCE_THRESHOLD}
+      - POSE_TRACKING_CONFIDENCE=${POSE_TRACKING_CONFIDENCE}
+      - POSE_DETECTION_CONFIDENCE=${POSE_DETECTION_CONFIDENCE}
+      - FRAME_EXTRACTION_INTERVAL=${FRAME_EXTRACTION_INTERVAL}
+      - MAX_FRAMES_TO_PROCESS=${MAX_FRAMES_TO_PROCESS}
+      - ENABLE_ANALYTICS=${ENABLE_ANALYTICS}
+      - ANALYTICS_SAMPLE_RATE=${ANALYTICS_SAMPLE_RATE}
+    volumes:
+      - ./backend:/app
+      - ./uploads:/app/uploads
+    networks:
+      - gymformai-network
+
+  # Supabase Local Development
+  supabase:
+    image: supabase/supabase-dev
+    ports:
+      - "54321:54321"
+      - "54322:54322"
+    environment:
+      - POSTGRES_PASSWORD=your-super-secret-and-long-postgres-password
+      - JWT_SECRET=your-super-secret-jwt-token-with-at-least-32-characters-long
+      - DASHBOARD_USERNAME=supabase
+      - DASHBOARD_PASSWORD=this_password_is_insecure_and_should_be_updated
+    volumes:
+      - supabase_data:/var/lib/postgresql/data
+      - ./supabase:/supabase
+    networks:
+      - gymformai-network
+
+  # Redis for caching and session storage
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - gymformai-network
+
+  # Nginx reverse proxy for production-like setup
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ./nginx/ssl:/etc/nginx/ssl
+    depends_on:
+      - frontend
+      - backend
+    networks:
+      - gymformai-network
+    profiles:
+      - production
+
+volumes:
+  supabase_data:
+  redis_data:
+
+networks:
+  gymformai-network:
+    driver: bridge 
