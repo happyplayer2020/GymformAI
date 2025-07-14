@@ -11,7 +11,7 @@ import { VideoUpload } from '@/components/VideoUpload';
 import { AnalysisResults } from '@/components/AnalysisResults';
 import { AuthModal } from '@/components/AuthModal';
 import { SubscriptionModal } from '@/components/SubscriptionModal';
-import { AnalysisService } from '@/../lib/analysisService';
+import { AnalysisService } from '@/lib/analysisService';
 import { formatFileSize } from '@/utils/fileUtils';
 import toast from 'react-hot-toast';
 
