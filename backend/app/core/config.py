@@ -1,9 +1,9 @@
 import os
 from typing import List, Optional
-from pydantic import BaseSettings, validator
-from pydantic_settings import BaseSettings as PydanticBaseSettings
+from pydantic_settings import BaseSettings
+from pydantic import validator
 
-class Settings(PydanticBaseSettings):
+class Settings(BaseSettings):
     """Application settings"""
     
     # Application
