@@ -1,3 +1,4 @@
+// This file was recreated to fix Vercel build issues. Do not remove.
 import axios from 'axios';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
